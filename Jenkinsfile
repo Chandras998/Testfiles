@@ -3,13 +3,13 @@ pipeline {
     parameters {
         // Assuming stashedFile is a custom or plugin-specific parameter type; otherwise, this might not work as expected.
         // Replace with 'file' if you're uploading a file directly.
-        stashedFile(name: 'csvfile', description: 'pdf')
+        stashedFile(name: 'csvfile', description: 'csv file upload')
     }
     stages {
         stage('Prepare') {
             steps {
                 // Assuming 'pdfile' is a stash name; unstash it
-                unstash 'pdfile'
+                unstash 'csvfile'
                 // Moving the unstashed file, assuming it's named 'pdfile' in the workspace
                 sh 'mv csvfile ${WORKSPACE}/chandra.csv'
             }
