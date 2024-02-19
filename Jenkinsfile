@@ -1,6 +1,5 @@
 pipeline {
-    agent {
-        label any
+    agent any
     }
     parameters {
         stashedFile description: 'pdf', name: 'pdfile'
@@ -19,4 +18,4 @@ pipeline {
             }
         }
     }
-}
+
