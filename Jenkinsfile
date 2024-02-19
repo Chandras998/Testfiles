@@ -1,9 +1,21 @@
 pipeline {
-    agent any
+    agent {
+        label any
+    }
+    parameters {
+        stashedFile description: 'pdf', name: 'pdfile'
+    }
     stages {
-        stage('Test') {
+        stage('prepare') {
             steps {
-                echo 'Hello, World!'
+                unstash 'pdfile'
+                sh 'mv pdfile ${WORKSPACE}/example.pdf'
+            }
+        }
+        stage('test') {
+            steps {
+                sh "ls -al ${WORKSPACE}/"
+                sh "sleep 10s"
             }
         }
     }
