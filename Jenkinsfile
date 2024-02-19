@@ -1,22 +1,24 @@
 pipeline {
     agent any
     parameters {
-        // Assuming stashedFile is a custom or plugin-specific parameter type; otherwise, this might not work as expected.
-        // Replace with 'file' if you're uploading a file directly.
-        stashedFile(name: 'csvfile', description: 'csv file upload')
+        // Assuming stashedFile is a custom or plugin-specific parameter type
+        stashedFile(name: 'csvfile1', description: 'First CSV file upload')
+        stashedFile(name: 'csvfile2', description: 'Second CSV file upload')
     }
     stages {
         stage('Prepare') {
             steps {
-                // Assuming 'pdfile' is a stash name; unstash it
-                unstash 'csvfile'
-                // Moving the unstashed file, assuming it's named 'pdfile' in the workspace
-                sh 'mv csvfile ${WORKSPACE}/chandra.csv'
+                // Unstash the first CSV file and move it
+                unstash 'csvfile1'
+                sh 'mv csvfile1 ${WORKSPACE}/chandra1.csv'
+                // Unstash the second CSV file and move it
+                unstash 'csvfile2'
+                sh 'mv csvfile2 ${WORKSPACE}/chandra2.csv'
             }
         }
         stage('Test') {
             steps {
-                // List files in the workspace
+                // List files in the workspace to verify
                 sh "ls -al ${WORKSPACE}/"
                 // Sleep for 10 seconds
                 sh "sleep 10s"
