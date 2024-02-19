@@ -10,11 +10,9 @@ pipeline {
         stage('Check Files') {
             steps {
                 script {
-                    // Initialize variables to check if files exist
                     def firstFileExists = fileExists('firstFile')
                     def secondFileExists = fileExists('secondFile')
 
-                    // Echo based on whether each file exists
                     if (firstFileExists) {
                         echo "First file is uploaded and available in the workspace."
                     } else {
@@ -33,11 +31,10 @@ pipeline {
         stage('Process Files') {
             steps {
                 script {
-                    // Processing uploaded files, example shown with echo
                     if (fileExists('firstFile') && fileExists('secondFile')) {
                         echo 'Both files are present. Processing now...'
-                        // Placeholder for actual processing commands
-                        // For example, you might want to move, rename, or analyze the files
+                        // Example: sh 'cat firstFile'
+                        // Example: sh 'cat secondFile'
                     } else {
                         echo 'One or both files are missing; skipping processing.'
                     }
@@ -47,17 +44,8 @@ pipeline {
 
         stage('Cleanup') {
             steps {
-                script {
-                    // Cleanup actions, for example, removing files after processing
-                    if (fileExists('firstFile')) {
-                        sh 'rm -f firstFile'
-                        echo 'First file removed.'
-                    }
-                    if (fileExists('secondFile')) {
-                        sh 'rm -f secondFile'
-                        echo 'Second file removed.'
-                    }
-                }
+                echo 'Cleaning up workspace...'
+                // Example: sh 'rm -f firstFile secondFile'
             }
         }
     }
