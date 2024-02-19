@@ -24,5 +24,12 @@ pipeline {
                 sh "sleep 10s"
             }
         }
+        stage('Cleanup') {
+            steps {
+                // Delete the CSV files from the workspace
+                sh 'rm -f ${WORKSPACE}/chandra1.csv ${WORKSPACE}/chandra2.csv'
+                echo 'Uploaded files have been removed.'
+            }
+        }
     }
 }
