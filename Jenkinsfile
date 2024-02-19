@@ -2,18 +2,19 @@ pipeline {
     agent any
 
     parameters {
-        file(name: 'firstFile', description: 'Upload the first file')
-        file(name: 'secondFile', description: 'Upload the second file')
+        file(name: 'firstFile', description: 'Upload the first file here')
+        file(name: 'secondFile', description: 'Upload the second file here')
     }
 
     stages {
         stage('Check Files') {
             steps {
                 script {
-                    // Check if files exist in the workspace
-                    def firstFileExists = fileExists 'firstFile'
-                    def secondFileExists = fileExists 'secondFile'
+                    // Initialize variables to check if files exist
+                    def firstFileExists = fileExists('firstFile')
+                    def secondFileExists = fileExists('secondFile')
 
+                    // Echo based on whether each file exists
                     if (firstFileExists) {
                         echo "First file is uploaded and available in the workspace."
                     } else {
@@ -32,12 +33,38 @@ pipeline {
         stage('Process Files') {
             steps {
                 script {
-                    // Placeholder for processing uploaded files
-                    // Example: sh 'ls -l'
+                    // Processing uploaded files, example shown with echo
+                    if (fileExists('firstFile') && fileExists('secondFile')) {
+                        echo 'Both files are present. Processing now...'
+                        // Placeholder for actual processing commands
+                        // For example, you might want to move, rename, or analyze the files
+                    } else {
+                        echo 'One or both files are missing; skipping processing.'
+                    }
                 }
             }
         }
 
-        // Add more stages as needed for your pipeline
+        stage('Cleanup') {
+            steps {
+                script {
+                    // Cleanup actions, for example, removing files after processing
+                    if (fileExists('firstFile')) {
+                        sh 'rm -f firstFile'
+                        echo 'First file removed.'
+                    }
+                    if (fileExists('secondFile')) {
+                        sh 'rm -f secondFile'
+                        echo 'Second file removed.'
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'This will always run after the stages, regardless of the result.'
+        }
     }
 }
