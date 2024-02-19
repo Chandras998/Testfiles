@@ -10,20 +10,20 @@ pipeline {
         stage('Prepare') {
             steps {
                 script {
-                    // Adjusting the check to handle null values and ensuring files are provided
-                    if (params.FirstFile != null && params.FirstFile.toString() != '') {
-                        // Assuming params.FirstFile is the name of the file for simplicity
-                        def firstFileName = params.FirstFile.getOriginalFileName()
-                        sh "cp '${firstFileName}' ${WORKSPACE}/"
+                    // Jenkins stores uploaded files in a temporary location accessible via environment variables
+                    // The names of the variables are FILE_PARAMETER_NAME and FILE_PARAMETER_NAME_FILE
+                    def firstFilePath = env.FirstFile
+                    def secondFilePath = env.SecondFile
+
+                    if (firstFilePath) {
+                        sh "cp '${firstFilePath}' ${WORKSPACE}/firstFile.txt"
                         echo "First file uploaded successfully."
                     } else {
                         echo "First file not found or not provided."
                     }
 
-                    if (params.SecondFile != null && params.SecondFile.toString() != '') {
-                        // Assuming params.SecondFile is the name of the file for simplicity
-                        def secondFileName = params.SecondFile.getOriginalFileName()
-                        sh "cp '${secondFileName}' ${WORKSPACE}/"
+                    if (secondFilePath) {
+                        sh "cp '${secondFilePath}' ${WORKSPACE}/secondFile.txt"
                         echo "Second file uploaded successfully."
                     } else {
                         echo "Second file not found or not provided."
@@ -35,25 +35,15 @@ pipeline {
         stage('Process Files') {
             steps {
                 echo 'Processing uploaded files...'
-                // Example: List files in the workspace
+                // Example: List files in the workspace to confirm they're there
                 sh 'ls -lah'
             }
         }
 
         stage('Cleanup') {
             steps {
-                // Enhanced cleanup step to dynamically remove uploaded files if they exist
-                script {
-                    if (params.FirstFile != null && params.FirstFile.toString() != '') {
-                        def firstFileName = params.FirstFile.getOriginalFileName()
-                        sh "rm -f ${WORKSPACE}/${firstFileName}"
-                    }
-
-                    if (params.SecondFile != null && params.SecondFile.toString() != '') {
-                        def secondFileName = params.SecondFile.getOriginalFileName()
-                        sh "rm -f ${WORKSPACE}/${secondFileName}"
-                    }
-                }
+                echo 'Cleaning up workspace...'
+                sh 'rm -f ${WORKSPACE}/firstFile.txt ${WORKSPACE}/secondFile.txt'
             }
         }
     }
