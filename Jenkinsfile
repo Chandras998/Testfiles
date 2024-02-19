@@ -10,20 +10,17 @@ pipeline {
         stage('Prepare') {
             steps {
                 script {
-                    // Jenkins stores uploaded files in a temporary location accessible via environment variables
-                    // The names of the variables are FILE_PARAMETER_NAME and FILE_PARAMETER_NAME_FILE
-                    def firstFilePath = env.FirstFile
-                    def secondFilePath = env.SecondFile
-
-                    if (firstFilePath) {
-                        sh "cp '${firstFilePath}' ${WORKSPACE}/firstFile.txt"
+                    // Check if the file parameters are provided
+                    if (env.FirstFile != null) {
+                        // Use the 'cp' command to copy the file from the Jenkins default location to the current workspace
+                        sh "cp '${WORKSPACE}/${env.FirstFile}' ."
                         echo "First file uploaded successfully."
                     } else {
                         echo "First file not found or not provided."
                     }
 
-                    if (secondFilePath) {
-                        sh "cp '${secondFilePath}' ${WORKSPACE}/secondFile.txt"
+                    if (env.SecondFile != null) {
+                        sh "cp '${WORKSPACE}/${env.SecondFile}' ."
                         echo "Second file uploaded successfully."
                     } else {
                         echo "Second file not found or not provided."
@@ -35,7 +32,7 @@ pipeline {
         stage('Process Files') {
             steps {
                 echo 'Processing uploaded files...'
-                // Example: List files in the workspace to confirm they're there
+                // Example: List files in the workspace
                 sh 'ls -lah'
             }
         }
@@ -43,7 +40,7 @@ pipeline {
         stage('Cleanup') {
             steps {
                 echo 'Cleaning up workspace...'
-                sh 'rm -f ${WORKSPACE}/firstFile.txt ${WORKSPACE}/secondFile.txt'
+                // Add commands to clean up if necessary
             }
         }
     }
