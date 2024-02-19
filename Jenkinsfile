@@ -6,6 +6,11 @@ pipeline {
         stashedFile(name: 'csvfile2', description: 'Second CSV file upload')
     }
     stages {
+        stage('List workspace contents') {
+            steps {
+                sh 'ls -lart'
+            }
+        }
         stage('Prepare') {
             steps {
                 // Unstash the first CSV file and move it
