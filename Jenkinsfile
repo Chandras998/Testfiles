@@ -13,12 +13,15 @@ pipeline {
         }
         stage('Prepare') {
             steps {
-                // Unstash the first CSV file and move it
+                // Unstash the first CSV file
                 unstash 'csvfile1'
-                sh 'mv csvfile1 ${WORKSPACE}/chandra1.csv'
-                // Unstash the second CSV file and move it
+                // Refresh the timestamp of the file
+                sh 'touch csvfile1'
+
+                // Unstash the second CSV file
                 unstash 'csvfile2'
-                sh 'mv csvfile2 ${WORKSPACE}/chandra2.csv'
+                // Refresh the timestamp of the file
+                sh 'touch csvfile2'
             }
         }
         stage('Test') {
@@ -27,13 +30,6 @@ pipeline {
                 sh "ls -al ${WORKSPACE}/"
                 // Sleep for 10 seconds
                 sh "sleep 10s"
-            }
-        }
-        stage('Cleanup') {
-            steps {
-                // Delete the CSV files from the workspace
-                sh 'rm -f ${WORKSPACE}/chandra1.csv ${WORKSPACE}/chandra2.csv'
-                echo 'Uploaded files have been removed.'
             }
         }
     }
