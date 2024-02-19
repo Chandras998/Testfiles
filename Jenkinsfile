@@ -10,22 +10,23 @@ pipeline {
         stage('Prepare') {
             steps {
                 script {
-                    // Copy files from parameters to the workspace
-                    def firstFile = params.FirstFile
-                    def secondFile = params.SecondFile
-
-                    if (firstFile != '') {
-                        sh "cp '${firstFile}' ${WORKSPACE}/"
+                    // Adjusting the check to handle null values and ensuring files are provided
+                    if (params.FirstFile != null && params.FirstFile.toString() != '') {
+                        // Assuming params.FirstFile is the name of the file for simplicity
+                        def firstFileName = params.FirstFile.getOriginalFileName()
+                        sh "cp '${firstFileName}' ${WORKSPACE}/"
                         echo "First file uploaded successfully."
                     } else {
-                        echo "First file not found."
+                        echo "First file not found or not provided."
                     }
 
-                    if (secondFile != '') {
-                        sh "cp '${secondFile}' ${WORKSPACE}/"
+                    if (params.SecondFile != null && params.SecondFile.toString() != '') {
+                        // Assuming params.SecondFile is the name of the file for simplicity
+                        def secondFileName = params.SecondFile.getOriginalFileName()
+                        sh "cp '${secondFileName}' ${WORKSPACE}/"
                         echo "Second file uploaded successfully."
                     } else {
-                        echo "Second file not found."
+                        echo "Second file not found or not provided."
                     }
                 }
             }
@@ -41,9 +42,18 @@ pipeline {
 
         stage('Cleanup') {
             steps {
-                // Example cleanup step
-                echo 'Cleaning up workspace...'
-                sh 'rm -f FirstFile SecondFile'
+                // Enhanced cleanup step to dynamically remove uploaded files if they exist
+                script {
+                    if (params.FirstFile != null && params.FirstFile.toString() != '') {
+                        def firstFileName = params.FirstFile.getOriginalFileName()
+                        sh "rm -f ${WORKSPACE}/${firstFileName}"
+                    }
+
+                    if (params.SecondFile != null && params.SecondFile.toString() != '') {
+                        def secondFileName = params.SecondFile.getOriginalFileName()
+                        sh "rm -f ${WORKSPACE}/${secondFileName}"
+                    }
+                }
             }
         }
     }
