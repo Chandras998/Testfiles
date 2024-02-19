@@ -1,15 +1,22 @@
 pipeline {
-    agent any
+    agent {
+        label 'any'
+    }
     parameters {
-        base64File(name: 'pdfile', description: 'pdf')
+        stashedFile description: 'pdf', name: 'pdfile'
     }
     stages {
-      stage('rename file') {
-	    steps {
-            withFileParameter(name:'pdfile', allowNoFile: false) {
-              sh 'mv $pdfile ${WORKSPACE}/example.pdf'
+        stage('prepare') {
+            steps {
+                unstash 'pdfile'
+                sh 'mv pdfile ${WORKSPACE}/example.pdf'
             }
-        } 
-      }
+        }
+        stage('test') {
+            steps {
+                sh "ls -al ${WORKSPACE}/"
+                sh "sleep 10s"
+            }
+        }
     }
 }
