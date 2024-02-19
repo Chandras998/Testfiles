@@ -10,18 +10,20 @@ pipeline {
         stage('Prepare') {
             steps {
                 script {
-                    // Check if the file parameters are provided
-                    if (env.FirstFile != null) {
-                        // Use the 'cp' command to copy the file from the Jenkins default location to the current workspace
-                        sh "cp '${WORKSPACE}/${env.FirstFile}' ."
+                    // Directly use the file names as uploaded; no need to prepend with WORKSPACE or env variable
+                    def firstFileExists = fileExists 'FirstFile'
+                    def secondFileExists = fileExists 'SecondFile'
+
+                    if (firstFileExists) {
                         echo "First file uploaded successfully."
+                        // If specific processing on the file is needed, do it here
                     } else {
                         echo "First file not found or not provided."
                     }
 
-                    if (env.SecondFile != null) {
-                        sh "cp '${WORKSPACE}/${env.SecondFile}' ."
+                    if (secondFileExists) {
                         echo "Second file uploaded successfully."
+                        // If specific processing on the file is needed, do it here
                     } else {
                         echo "Second file not found or not provided."
                     }
@@ -40,7 +42,7 @@ pipeline {
         stage('Cleanup') {
             steps {
                 echo 'Cleaning up workspace...'
-                // Add commands to clean up if necessary
+                sh 'rm -f FirstFile SecondFile'
             }
         }
     }
