@@ -2,29 +2,30 @@ pipeline {
     agent any
 
     parameters {
-        file(name: 'FirstFile', description: 'Upload the first file here')
-        file(name: 'SecondFile', description: 'Upload the second file here')
+        base64File name: 'FirstFile', description: 'Upload the first file here', encoding: 'BASE64'
+        base64File name: 'SecondFile', description: 'Upload the second file here', encoding: 'BASE64'
     }
 
     stages {
         stage('Prepare') {
             steps {
                 script {
-                    // The files are uploaded to the root of the workspace directory
-                    // Use the 'fileExists' step to check if the files exist
-                    def firstFileExists = fileExists 'FirstFile'
-                    def secondFileExists = fileExists 'SecondFile'
-
-                    if (firstFileExists) {
-                        echo "First file uploaded successfully."
+                    // Check if the 'FirstFile' was uploaded
+                    if (params.FirstFile) {
+                        // Decoding the Base64 content of the first file
+                        def firstFileContent = new String(Base64.decoder.decode(params.FirstFile), "UTF-8")
+                        echo "First file content: ${firstFileContent}"
                     } else {
-                        echo "First file not found or not provided."
+                        echo "First file not uploaded or not found."
                     }
-
-                    if (secondFileExists) {
-                        echo "Second file uploaded successfully."
+                    
+                    // Check if the 'SecondFile' was uploaded
+                    if (params.SecondFile) {
+                        // Decoding the Base64 content of the second file
+                        def secondFileContent = new String(Base64.decoder.decode(params.SecondFile), "UTF-8")
+                        echo "Second file content: ${secondFileContent}"
                     } else {
-                        echo "Second file not found or not provided."
+                        echo "Second file not uploaded or not found."
                     }
                 }
             }
@@ -32,16 +33,15 @@ pipeline {
 
         stage('Process Files') {
             steps {
-                echo 'Processing uploaded files...'
-                // If the files exist, they can be processed here
-                sh 'ls -lah'
+                echo 'This stage would process the uploaded files.'
+                // Add your processing steps here
             }
         }
 
         stage('Cleanup') {
             steps {
-                echo 'Cleaning up workspace...'
-                // Clean up the workspace if necessary
+                echo 'This stage would clean up any resources used.'
+                // Add your cleanup steps here
             }
         }
     }
