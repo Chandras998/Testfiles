@@ -1,50 +1,50 @@
 pipeline {
-    agent any
+    agent any // or specify 'label' if you need to run on a specific node
 
     parameters {
-        base64File name: 'FirstFile', description: 'Upload the first file here'
-        base64File name: 'SecondFile', description: 'Upload the second file here'
+        base64File name: 'firstFile', description: 'Upload the first file'
+        base64File name: 'secondFile', description: 'Upload the second file'
     }
 
     stages {
-        stage('Prepare') {
+        stage('Prepare and Rename First File') {
             steps {
-                script {
-                    // Check if the 'FirstFile' was uploaded
-                    if (params.FirstFile) {
-                        // The uploaded file is saved in the workspace. We need to decode it from Base64.
-                        def firstFileContent = new String(Base64.decoder.decode(params.FirstFile.bytes), "UTF-8")
-                        echo "First file content: ${firstFileContent}"
-                    } else {
-                        echo "First file not uploaded or not found."
-                    }
-                    
-                    // Check if the 'SecondFile' was uploaded
-                    if (params.SecondFile) {
-                        def secondFileContent = new String(Base64.decoder.decode(params.SecondFile.bytes), "UTF-8")
-                        echo "Second file content: ${secondFileContent}"
-                    } else {
-                        echo "Second file not uploaded or not found."
-                    }
+                withFileParameter('firstFile') {
+                    // This block will only execute if 'firstFile' is uploaded.
+                    sh 'mv "$firstFile" "renamedFirstFile.ext"' // Replace '.ext' with the actual file extension
+                    echo 'First file renamed to renamedFirstFile.ext'
                 }
             }
         }
-
-        stage('Process Files') {
+        
+        stage('Prepare and Rename Second File') {
             steps {
-                echo 'This stage would process the uploaded files.'
-                // Add your processing steps here
+                withFileParameter('secondFile') {
+                    // This block will only execute if 'secondFile' is uploaded.
+                    sh 'mv "$secondFile" "renamedSecondFile.ext"' // Replace '.ext' with the actual file extension
+                    echo 'Second file renamed to renamedSecondFile.ext'
+                }
             }
         }
-
+        
+        // Add additional stages if you need to process the files
+        stage('Process Files') {
+            steps {
+                echo 'Here you would add steps to process the renamed files.'
+                // Example: sh 'process-script.sh renamedFirstFile.ext'
+                // Example: sh 'process-script.sh renamedSecondFile.ext'
+            }
+        }
+        
+        // Add a cleanup stage if necessary
         stage('Cleanup') {
             steps {
-                echo 'This stage would clean up any resources used.'
-                // Add your cleanup steps here
+                echo 'Cleaning up workspace...'
+                sh 'rm -f renamedFirstFile.ext renamedSecondFile.ext' // Replace '.ext' with the actual file extension
             }
         }
     }
-
+    
     post {
         always {
             echo 'This will always run after the stages, regardless of the result.'
