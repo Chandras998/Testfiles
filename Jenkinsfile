@@ -5,6 +5,12 @@ pipeline {
         stashedFile(name: 'csvfile2', description: 'Second CSV file upload')
         choice(name: 'ENV', choices: ['DEV', 'QA', 'TEST', 'PROD'])
     }
+    {
+        environment {
+            ENV_MAIN="" 
+            APP=""
+        }
+    }
     stages {
         stage('List workspace contents') {
             steps {
@@ -29,9 +35,7 @@ pipeline {
             steps {
                 sh(script: '''
                     #!/bin/bash
-                    ENV_MAIN="" # Initialize the variable
-                    APP=""
-
+                
                     if [ "${ENV}" = "DEV" ]; then
                         ENV_MAIN="NONPROD"
                         APP="CSK8S"
