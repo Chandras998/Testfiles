@@ -22,7 +22,7 @@ pipeline {
         stage('Test') {
             steps {
                 sh "ls -al ${WORKSPACE}/"
-                sh "sleep 10s"
+                sh "sleep 3s"
             }
         }
         stage('Test Env') {
