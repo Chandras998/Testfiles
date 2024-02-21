@@ -49,7 +49,7 @@ pipeline {
                     # Echo the values
                     echo "ENV_MAIN is ${ENV_MAIN} and APP is ${APP}"
                     ''', returnStdout: false)
-                }
+                
             }
         }
     }
