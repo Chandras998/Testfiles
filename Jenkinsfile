@@ -59,6 +59,7 @@ pipeline {
                     echo "Echoing variables within docker-in-docker container..."
                     echo "ENV_MAIN: $ENV_MAIN"
                     echo "APP: $APP"
+                    ''', returnStdout: false)
                 }
             }
     }
