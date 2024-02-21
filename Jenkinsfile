@@ -48,13 +48,19 @@ pipeline {
                         ENV_MAIN="PROD"
                         APP="CSK8S-PRD"
                     fi
-
-                    # Echo the values
-                    echo "ENV_MAIN is ${ENV_MAIN} and APP is ${APP}"
                     ''', returnStdout: false)
                 
             }
         }
+        stage('echo variables') {
+            steps {
+                sh(script: '''
+                    #!/bin/bash
+                    echo "Echoing variables within docker-in-docker container..."
+                    echo "ENV_MAIN: $ENV_MAIN"
+                    echo "APP: $APP"
+                }
+            }
     }
     post {
         always {
