@@ -5,12 +5,11 @@ pipeline {
         stashedFile(name: 'csvfile2', description: 'Second CSV file upload')
         choice(name: 'ENV', choices: ['DEV', 'QA', 'TEST', 'PROD'])
     }
-    {
-        environment {
-            ENV_MAIN="" 
-            APP=""
+    environment {
+        ENV_MAIN="" 
+        APP=""
         }
-    }
+    
     stages {
         stage('List workspace contents') {
             steps {
