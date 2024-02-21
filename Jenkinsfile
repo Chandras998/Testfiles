@@ -1,10 +1,12 @@
 pipeline {
     agent any
     parameters {
-        // Assuming stashedFile is a custom or plugin-specific parameter type
         stashedFile(name: 'csvfile1', description: 'First CSV file upload')
         stashedFile(name: 'csvfile2', description: 'Second CSV file upload')
         choice(name: 'ENV', choices: ['DEV', 'QA', 'TEST', 'PROD'])
+    }
+    environment {
+        ENV_MAIN = '' // Define the variable at the pipeline level if needed
     }
     stages {
         stage('List workspace contents') {
@@ -34,26 +36,25 @@ pipeline {
             }
         }
         stage('Test Env') {
-            steps{
-                sh (script: '''
-                if "$ENV" = "DEV"; then
-                    ENV_MAIN='NONPROD'
-                    APP='CSK8S'
-                    echo "$ENV_MAIN"
-                elif "$ENV" = "QA"; then
-                    ENV_MAIN='NONPROD'
-                    APP='CSK8S-qa'
-                elif "$ENV" = "TEST"; then
-                    ENV_MAIN='NONPROD'
-                    APP='CSK8S-NP'
-                elif "$ENV" = "PROD"; then
-                    ENV_MAIN='NONPROD'
-                    APP='CSK8S-PRD'
-                fi
-                echo "$ENV_MAIN"
-                ''', returnStdout: false)
-                
-            
+            steps {
+                script {
+                    // Use Groovy to set ENV_MAIN and APP based on the ENV parameter
+                    if (params.ENV == 'DEV') {
+                        env.ENV_MAIN = 'NONPROD'
+                        env.APP = 'CSK8S'
+                    } else if (params.ENV == 'QA') {
+                        env.ENV_MAIN = 'NONPROD'
+                        env.APP = 'CSK8S-qa'
+                    } else if (params.ENV == 'TEST') {
+                        env.ENV_MAIN = 'NONPROD'
+                        env.APP = 'CSK8S-NP'
+                    } else if (params.ENV == 'PROD') {
+                        env.ENV_MAIN = 'PROD' // Fixed to correctly reflect PROD environment
+                        env.APP = 'CSK8S-PRD'
+                    }
+                }
+                // Echo the values to confirm
+                sh "echo ENV_MAIN is ${env.ENV_MAIN} and APP is ${env.APP}"
             }
         }
     }
