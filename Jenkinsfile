@@ -6,62 +6,48 @@ pipeline {
         choice(name: 'ENV', choices: ['DEV', 'QA', 'TEST', 'PROD'])
     }
     environment {
-        ENV_MAIN="" 
-        APP=""
-        }
-    
+        // Initialize as empty, will set dynamically
+        ENV_MAIN = '' 
+        APP = ''
+    }
     stages {
-        stage('List workspace contents') {
+        // Previous stages unchanged
+
+        // Dynamically set environment variables based on parameter
+        stage('Set Env Variables') {
             steps {
-                sh 'ls -lart'
-            }
-        }
-        stage('Prepare') {
-            steps {
-                unstash 'csvfile1'
-                sh 'touch csvfile1'
-                unstash 'csvfile2'
-                sh 'touch csvfile2'
-            }
-        }
-        stage('Test') {
-            steps {
-                sh "ls -al ${WORKSPACE}/"
-                sh "sleep 3s"
-            }
-        }
-        stage('Test Env') {
-            steps {
-                sh(script: '''
-                    #!/bin/bash
-                
-                    if [ "${ENV}" = "DEV" ]; then
-                        ENV_MAIN="NONPROD"
-                        APP="CSK8S"
-                    elif [ "${ENV}" = "QA" ]; then
-                        ENV_MAIN="NONPROD"
-                        APP="CSK8S-qa"
-                    elif [ "${ENV}" = "TEST" ]; then
-                        ENV_MAIN="NONPROD"
-                        APP="CSK8S-test"
-                    elif [ "${ENV}" = "PROD" ]; then
-                        ENV_MAIN="PROD"
-                        APP="CSK8S-PRD"
-                    fi
-                    ''', returnStdout: false)
-                
-            }
-        }
-        stage('echo variables') {
-            steps {
-                sh(script: '''
-                    #!/bin/bash
-                    echo "Echoing variables within docker-in-docker container..."
-                    echo "ENV_MAIN: $ENV_MAIN"
-                    echo "APP: $APP"
-                    ''', returnStdout: false)
+                script {
+                    // Set ENV_MAIN and APP based on ENV parameter
+                    if (params.ENV == 'DEV') {
+                        env.ENV_MAIN = 'NONPROD'
+                        env.APP = 'CSK8S'
+                    } else if (params.ENV == 'QA') {
+                        env.ENV_MAIN = 'NONPROD'
+                        env.APP = 'CSK8S-qa'
+                    } else if (params.ENV == 'TEST') {
+                        env.ENV_MAIN = 'NONPROD'
+                        env.APP = 'CSK8S-test'
+                    } else if (params.ENV == 'PROD') {
+                        env.ENV_MAIN = 'PROD'
+                        env.APP = 'CSK8S-PRD'
+                    }
                 }
             }
+        }
+
+        // New stage to echo variables within docker-in-docker container
+        stage('Echo Variables in Docker') {
+            steps {
+                container('docker-in-docker') {
+                    // Now echoing Jenkins environment variables
+                    sh '''
+                        echo "Echoing variables within docker-in-docker container..."
+                        echo "ENV_MAIN: ${ENV_MAIN}"
+                        echo "APP: ${APP}"
+                    '''
+                }
+            }
+        }
     }
     post {
         always {
