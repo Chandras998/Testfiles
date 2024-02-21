@@ -27,26 +27,28 @@ pipeline {
         }
         stage('Test Env') {
             steps {
-                script {
-                    def ENV_MAIN = '' // Initialize the variable
-                    def APP = ''
+                sh(script: '''
+                    #!/bin/bash
+                    ENV_MAIN="" # Initialize the variable
+                    APP=""
 
-                    if (params.ENV == 'DEV') {
-                        ENV_MAIN = 'NONPROD'
-                        APP = 'CSK8S'
-                    } else if (params.ENV == 'QA') {
-                        ENV_MAIN = 'NONPROD'
-                        APP = 'CSK8S-qa'
-                    } else if (params.ENV == 'TEST') {
-                        ENV_MAIN = 'NONPROD'
-                        APP = 'CSK8S-test'
-                    } else if (params.ENV == 'PROD') {
-                        ENV_MAIN = 'PROD'
-                        APP = 'CSK8S-PRD'
-                    }
+                    if [ "${ENV}" = "DEV" ]; then
+                        ENV_MAIN="NONPROD"
+                        APP="CSK8S"
+                    elif [ "${ENV}" = "QA" ]; then
+                        ENV_MAIN="NONPROD"
+                        APP="CSK8S-qa"
+                    elif [ "${ENV}" = "TEST" ]; then
+                        ENV_MAIN="NONPROD"
+                        APP="CSK8S-test"
+                    elif [ "${ENV}" = "PROD" ]; then
+                        ENV_MAIN="PROD"
+                        APP="CSK8S-PRD"
+                    fi
 
-                    // Echo the values
+                    # Echo the values
                     echo "ENV_MAIN is ${ENV_MAIN} and APP is ${APP}"
+                    ''', returnStdout: false)
                 }
             }
         }
