@@ -38,14 +38,14 @@ pipeline {
         // New stage to echo variables within docker-in-docker container
         stage('Echo Variables in Docker') {
             steps {
-                container('docker-in-docker') {
+                
                     // Now echoing Jenkins environment variables
                     sh '''
                         echo "Echoing variables within docker-in-docker container..."
                         echo "ENV_MAIN: ${ENV_MAIN}"
                         echo "APP: ${APP}"
                     '''
-                }
+                
             }
         }
     }
