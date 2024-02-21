@@ -40,8 +40,8 @@ pipeline {
                 script {
                     // Use Groovy to set ENV_MAIN and APP based on the ENV parameter
                     if (params.ENV == 'DEV') {
-                        env.ENV_MAIN = 'NONPROD'
-                        env.APP = 'CSK8S'
+                        ENV_MAIN = 'NONPROD'
+                        APP = 'CSK8S'
                     } else if (params.ENV == 'QA') {
                         env.ENV_MAIN = 'NONPROD'
                         env.APP = 'CSK8S-qa'
