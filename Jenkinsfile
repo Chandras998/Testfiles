@@ -39,7 +39,7 @@ pipeline {
                         APP = 'CSK8S-qa'
                     } else if (params.ENV == 'TEST') {
                         ENV_MAIN = 'NONPROD'
-                        APP = 'CSK8S-NP'
+                        APP = 'CSK8S-test'
                     } else if (params.ENV == 'PROD') {
                         ENV_MAIN = 'PROD'
                         APP = 'CSK8S-PRD'
