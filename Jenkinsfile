@@ -5,41 +5,40 @@ pipeline {
         stashedFile(name: 'csvfile2', description: 'Upload your second CSV file.')
         choice(name: 'ENV', choices: ['DEV', 'QA', 'TEST', 'PROD'], description: 'Select the environment.')
     }
-    environment {
-        // Placeholder for dynamic environment variable assignment
-        ENV_MAIN = ''
-        APP = ''
-    }
     stages {
-        stage('Set Env Variables') {
+        stage('Set Env Variables and Echo') {
             steps {
                 script {
-                    // Logic for setting environment variables based on the "ENV" parameter
+                    // Directly set and echo variables without using env.ENV_MAIN
+                    def ENV_MAIN = ''
+                    def APP = ''
+
                     if (params.ENV == 'DEV') {
-                        env.ENV_MAIN = 'NONPROD'
-                        env.APP = 'CSK8S'
+                        ENV_MAIN = 'NONPROD'
+                        APP = 'CSK8S'
                     } else if (params.ENV == 'QA') {
-                        env.ENV_MAIN = 'NONPROD'
-                        env.APP = 'CSK8S-qa'
+                        ENV_MAIN = 'NONPROD'
+                        APP = 'CSK8S-qa'
                     } else if (params.ENV == 'TEST') {
-                        env.ENV_MAIN = 'NONPROD'
-                        env.APP = 'CSK8S-test'
+                        ENV_MAIN = 'NONPROD'
+                        APP = 'CSK8S-test'
                     } else if (params.ENV == 'PROD') {
-                        env.ENV_MAIN = 'PROD'
-                        env.APP = 'CSK8S-PRD'
+                        ENV_MAIN = 'PROD'
+                        APP = 'CSK8S-PRD'
                     }
+
+                    // Echo variables within the script block for immediate feedback
+                    echo "ENV_MAIN: ${ENV_MAIN}, APP: ${APP}"
                 }
             }
         }
-        stage('Echo Variables Separately') {
+        stage('Echo Variables Separately in Docker') {
             steps {
-                
-                    // Use a Groovy string to construct the shell command with environment variables
+                    // Use script block to echo variables; ensure they are passed as parameters to the container
                     script {
-                        def cmd = "echo 'Echoing variables within docker-in-docker container...';" +
-                                  "echo 'ENV_MAIN: ${env.ENV_MAIN}';" +
-                                  "echo 'APP: ${env.APP}';"
-                        sh script: cmd, label: 'Show ENV_MAIN and APP'
+                        def mainEnv = env.ENV_MAIN ?: 'Not Set'
+                        def app = env.APP ?: 'Not Set'
+                        sh "echo 'Inside Docker - ENV_MAIN: ${mainEnv}, APP: ${app}'"
                     
                 }
             }
