@@ -5,13 +5,15 @@ pipeline {
         stashedFile(name: 'csvfile2', description: 'Upload your second CSV file.')
         choice(name: 'ENV', choices: ['DEV', 'QA', 'TEST', 'PROD'], description: 'Select the environment.')
     }
+    environment {
+        ENV_MAIN = '' // Will be dynamically set
+        APP = '' // Will be dynamically set
+    }
     stages {
-        // Previous setup and stages unchanged...
-
         stage('Set Env Variables') {
             steps {
                 script {
-                    // Logic to set ENV_MAIN and APP based on ENV parameter
+                    // Setting environment variables based on the parameter
                     if (params.ENV == 'DEV') {
                         env.ENV_MAIN = 'NONPROD'
                         env.APP = 'CSK8S'
@@ -25,18 +27,26 @@ pipeline {
                         env.ENV_MAIN = 'PROD'
                         env.APP = 'CSK8S-PRD'
                     }
+                    // Echo the variables here to verify they're set
+                    println("ENV_MAIN set to: ${env.ENV_MAIN}, APP set to: ${env.APP}")
                 }
             }
         }
-
         stage('Echo Variables Separately') {
             steps {
                 
-                    // Directly inject the values into the shell command
-                    sh """
-                        ENV_MAIN='${env.ENV_MAIN}' APP='${env.APP}' bash -c 'echo "Echoing variables separately..."; echo "ENV_MAIN: \$ENV_MAIN"; echo "APP: \$APP";'
-                    """
-                
+                    // Use Groovy string interpolation to construct the command
+                    script {
+                        // Construct the command with Groovy string interpolation
+                        def cmd = """
+                            echo 'Echoing variables separately...'
+                            echo 'ENV_MAIN: ${env.ENV_MAIN}'
+                            echo 'APP: ${env.APP}'
+                        """
+                        // Execute the constructed command
+                        sh(cmd)
+                    
+                }
             }
         }
     }
