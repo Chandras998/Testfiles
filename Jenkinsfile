@@ -49,13 +49,12 @@ pipeline {
                 }
             }
         }
-        stage('Echo Variables in Docker') {
+        stage('Echo Variables seperately') {
             steps {
                 
-                    // Echoing ENV_MAIN and APP within the docker-in-docker container
                     script {
                         sh """
-                            echo "Echoing variables within docker-in-docker container..."
+                            echo "Echoing variables seperately"
                                echo "ENV_MAIN: ${env.ENV_MAIN}"
                                echo "APP: ${env.APP}"
                         """
