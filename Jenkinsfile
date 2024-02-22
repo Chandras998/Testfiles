@@ -6,14 +6,15 @@ pipeline {
         choice(name: 'ENV', choices: ['DEV', 'QA', 'TEST', 'PROD'], description: 'Select the environment.')
     }
     environment {
-        ENV_MAIN = '' // Will be dynamically set
-        APP = '' // Will be dynamically set
+        // Placeholder for dynamic environment variable assignment
+        ENV_MAIN = ''
+        APP = ''
     }
     stages {
         stage('Set Env Variables') {
             steps {
                 script {
-                    // Setting environment variables based on the parameter
+                    // Logic for setting environment variables based on the "ENV" parameter
                     if (params.ENV == 'DEV') {
                         env.ENV_MAIN = 'NONPROD'
                         env.APP = 'CSK8S'
@@ -27,25 +28,19 @@ pipeline {
                         env.ENV_MAIN = 'PROD'
                         env.APP = 'CSK8S-PRD'
                     }
-                    // Echo the variables here to verify they're set
-                    println("ENV_MAIN set to: ${env.ENV_MAIN}, APP set to: ${env.APP}")
                 }
             }
         }
         stage('Echo Variables Separately') {
             steps {
-                
-                    // Use Groovy string interpolation to construct the command
+                container('docker-in-docker') {
+                    // Use a Groovy string to construct the shell command with environment variables
                     script {
-                        // Construct the command with Groovy string interpolation
-                        def cmd = """
-                            echo 'Echoing variables separately...'
-                            echo 'ENV_MAIN: ${env.ENV_MAIN}'
-                            echo 'APP: ${env.APP}'
-                        """
-                        // Execute the constructed command
-                        sh(cmd)
-                    
+                        def cmd = "echo 'Echoing variables within docker-in-docker container...';" +
+                                  "echo 'ENV_MAIN: ${env.ENV_MAIN}';" +
+                                  "echo 'APP: ${env.APP}';"
+                        sh script: cmd, label: 'Show ENV_MAIN and APP'
+                    }
                 }
             }
         }
