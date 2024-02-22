@@ -54,14 +54,10 @@ pipeline {
                 
                     // Echoing ENV_MAIN and APP within the docker-in-docker container
                     script {
-                        // Passing Jenkins environment variables to shell script
-                        def envMain = env.ENV_MAIN
-                        def app = env.APP
-                        
                         sh """
-                           echo "Echoing variables within docker-in-docker container..."
-                           echo "ENV_MAIN: $envMain"
-                           echo "APP: $app"
+                            echo "Echoing variables within docker-in-docker container..."
+                               echo "ENV_MAIN: ${env.ENV_MAIN}"
+                               echo "APP: ${env.APP}"
                         """
                     
                 }
