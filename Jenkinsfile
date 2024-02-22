@@ -1,38 +1,17 @@
 pipeline {
     agent any
     parameters {
-        stashedFile(name: 'csvfile1', description: 'First CSV file upload')
-        stashedFile(name: 'csvfile2', description: 'Second CSV file upload')
-        choice(name: 'ENV', choices: ['DEV', 'QA', 'TEST', 'PROD'])
-    }
-    environment {
-        ENV_MAIN = '' 
-        APP = ''
+        stashedFile(name: 'csvfile1', description: 'Upload your first CSV file.')
+        stashedFile(name: 'csvfile2', description: 'Upload your second CSV file.')
+        choice(name: 'ENV', choices: ['DEV', 'QA', 'TEST', 'PROD'], description: 'Select the environment.')
     }
     stages {
-        stage('List workspace contents') {
-            steps {
-                sh 'ls -lart'
-            }
-        }
-        stage('Prepare') {
-            steps {
-                unstash 'csvfile1'
-                sh 'touch csvfile1'
-                unstash 'csvfile2'
-                sh 'touch csvfile2'
-            }
-        }
-        stage('Test') {
-            steps {
-                sh "ls -al ${WORKSPACE}/"
-                sh "sleep 3s"
-            }
-        }
+        // Previous setup and stages unchanged...
+
         stage('Set Env Variables') {
             steps {
                 script {
-                    // Dynamically set ENV_MAIN and APP based on the selected ENV
+                    // Logic to set ENV_MAIN and APP based on ENV parameter
                     if (params.ENV == 'DEV') {
                         env.ENV_MAIN = 'NONPROD'
                         env.APP = 'CSK8S'
@@ -49,17 +28,15 @@ pipeline {
                 }
             }
         }
-        stage('Echo Variables seperately') {
+
+        stage('Echo Variables Separately') {
             steps {
                 
-                    script {
-                        sh """
-                            echo "Echoing variables seperately"
-                               echo "ENV_MAIN: ${env.ENV_MAIN}"
-                               echo "APP: ${env.APP}"
-                        """
-                    
-                }
+                    // Directly inject the values into the shell command
+                    sh """
+                        ENV_MAIN='${env.ENV_MAIN}' APP='${env.APP}' bash -c 'echo "Echoing variables separately..."; echo "ENV_MAIN: \$ENV_MAIN"; echo "APP: \$APP";'
+                    """
+                
             }
         }
     }
