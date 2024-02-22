@@ -19,7 +19,7 @@ pipeline {
         
         stage('Echo Variables in Docker Container') {
             steps {
-\                    // Read variables from the file and echo them
+                    // Read variables from the file and echo them
                     sh '''
                         source ../env_vars.tmp
                         echo "Inside Docker - ENV_MAIN: $ENV_MAIN, APP: $APP"
