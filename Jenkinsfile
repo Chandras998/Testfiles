@@ -7,19 +7,34 @@ pipeline {
         stage('Set Env Variables and Write to File') {
             steps {
                 script {
-                    // Determine environment variables based on the parameter
-                    ENV_MAIN = (params.ENV == 'DEV' || params.ENV == 'QA' || params.ENV == 'TEST') ? 'NONPROD' : 'PROD'
-                    APP = (params.ENV == 'DEV') ? 'CSK8S' : (params.ENV == 'QA') ? 'CSK8S-qa' : (params.ENV == 'TEST') ? 'CSK8S-test' : 'CSK8S-PRD'
+                    // Initialize variables
+                    def ENV_MAIN = ''
+                    def APP = ''
                     
-                    // Write environment variables to a temporary file in the workspace
-                    writeFile file: "${env.WORKSPACE}/env_vars.tmp", text: "ENV_MAIN=${ENV_MAIN}\nAPP=${APP}"
+                    // Use simple if-else structure to set environment variables
+                    if (params.ENV == 'DEV') {
+                        ENV_MAIN = 'NONPROD'
+                        APP = 'CSK8S'
+                    } else if (params.ENV == 'QA') {
+                        ENV_MAIN = 'NONPROD'
+                        APP = 'CSK8S-qa'
+                    } else if (params.ENV == 'TEST') {
+                        ENV_MAIN = 'NONPROD'
+                        APP = 'CSK8S-test'
+                    } else if (params.ENV == 'PROD') {
+                        ENV_MAIN = 'PROD'
+                        APP = 'CSK8S-PRD'
+                    }
+
+                    // Write environment variables to a temporary file
+                    writeFile file: "${env.WORKSPACE}/env_vars.tmp", text: "export ENV_MAIN=${ENV_MAIN}\nexport APP=${APP}"
                 }
             }
         }
         
         stage('Echo Variables in Docker Container') {
             steps {
-                    // Read variables from the file using the absolute path and echo them
+                    // Source the temporary file to set environment variables in the Docker container
                     sh '''
                         source $WORKSPACE/env_vars.tmp
                         echo "Inside Docker - ENV_MAIN: $ENV_MAIN, APP: $APP"
@@ -30,7 +45,7 @@ pipeline {
     }
     post {
         always {
-            // Cleanup the temporary file along with the workspace
+            // Cleanup the workspace, which includes the temporary file
             cleanWs()
         }
     }
