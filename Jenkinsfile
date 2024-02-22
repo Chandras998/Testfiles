@@ -1,49 +1,29 @@
 pipeline {
     agent any
     parameters {
-        stashedFile(name: 'csvfile1', description: 'Upload your first CSV file.')
-        stashedFile(name: 'csvfile2', description: 'Upload your second CSV file.')
         choice(name: 'ENV', choices: ['DEV', 'QA', 'TEST', 'PROD'], description: 'Select the environment.')
     }
-    environment {
-        // These are placeholders and will be set dynamically
-        ENV_MAIN = ''
-        APP = ''
-    }
     stages {
-        stage('Set Env Variables and Echo') {
+        stage('Set Env Variables and Write to File') {
             steps {
                 script {
-                    // Dynamically set the environment variables
-                    def localEnvMain = ''
-                    def localApp = ''
-                    if (params.ENV == 'DEV') {
-                        localEnvMain = 'NONPROD'
-                        localApp = 'CSK8S'
-                    } else if (params.ENV == 'QA') {
-                        localEnvMain = 'NONPROD'
-                        localApp = 'CSK8S-qa'
-                    } else if (params.ENV == 'TEST') {
-                        localEnvMain = 'NONPROD'
-                        localApp = 'CSK8S-test'
-                    } else if (params.ENV == 'PROD') {
-                        localEnvMain = 'PROD'
-                        localApp = 'CSK8S-PRD'
-                    }
-                    // Set Jenkins environment variables for use in later stages
-                    env.ENV_MAIN = localEnvMain
-                    env.APP = localApp
-                    // Echo the variables for immediate feedback
-                    echo "Set ENV_MAIN: $localEnvMain, APP: $localApp"
+                    // Determine environment variables based on the parameter
+                    ENV_MAIN = (params.ENV == 'DEV' || params.ENV == 'QA' || params.ENV == 'TEST') ? 'NONPROD' : 'PROD'
+                    APP = (params.ENV == 'DEV') ? 'CSK8S' : (params.ENV == 'QA') ? 'CSK8S-qa' : (params.ENV == 'TEST') ? 'CSK8S-test' : 'CSK8S-PRD'
+                    
+                    // Write environment variables to a temporary file
+                    writeFile file: 'env_vars.tmp', text: "ENV_MAIN=${ENV_MAIN}\nAPP=${APP}"
                 }
             }
         }
-        stage('Echo Variables Separately in Docker') {
+        
+        stage('Echo Variables in Docker Container') {
             steps {
-                    // Inject the environment variables into the Docker command
-                    sh """
-                        echo 'Inside Docker - ENV_MAIN: \${ENV_MAIN}, APP: \${APP}'
-                    """
+\                    // Read variables from the file and echo them
+                    sh '''
+                        source ../env_vars.tmp
+                        echo "Inside Docker - ENV_MAIN: $ENV_MAIN, APP: $APP"
+                    '''
                 
             }
         }
