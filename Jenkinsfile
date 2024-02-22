@@ -33,14 +33,14 @@ pipeline {
         }
         stage('Echo Variables Separately') {
             steps {
-                container('docker-in-docker') {
+                
                     // Use a Groovy string to construct the shell command with environment variables
                     script {
                         def cmd = "echo 'Echoing variables within docker-in-docker container...';" +
                                   "echo 'ENV_MAIN: ${env.ENV_MAIN}';" +
                                   "echo 'APP: ${env.APP}';"
                         sh script: cmd, label: 'Show ENV_MAIN and APP'
-                    }
+                    
                 }
             }
         }
