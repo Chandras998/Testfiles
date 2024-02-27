@@ -51,7 +51,7 @@ pipeline {
                     def props = readProperties file: "$WORKSPACE/env_vars.tmp"
 
                     // Trigger the downstream job with parameters
-                    build job: 'downstream-job-name', parameters: [
+                    build job: 'main-deployment', parameters: [
                         string(name: 'ENV_MAIN', value: props['ENV_MAIN']),
                         string(name: 'APP', value: props['APP'])
                     ], wait: false
