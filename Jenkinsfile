@@ -30,6 +30,8 @@ pipeline {
         stage('Trigger Downstream Job') {
             steps {
                 script {
+                    sh "ls -lart"
+                    sh "cat ${env.WORKSPACE}/env_vars.tmp"
                     def props = readProperties file: "${env.WORKSPACE}/env_vars.tmp"
                     
                     echo "Read from properties file: ENV_MAIN=${props['ENV_MAIN']}, APP=${props['APP']}"
