@@ -53,8 +53,8 @@ pipeline {
                     
                     // Trigger the downstream job with parameters
                     build job: 'main-deployment', parameters: [
-                        string(name: 'ENV_MAIN', value: props['ENV_MAIN']),
-                        string(name: 'APP', value: props['APP'])
+                    string(name: 'ENV_MAIN', value: "${props['ENV_MAIN']}"),
+                    string(name: 'APP', value: "${props['APP']}")
                     ], wait: false
                 }
             }
