@@ -45,21 +45,28 @@ pipeline {
         }*/
 
         stage('Trigger Downstream Job') {
-            steps {
-                script {
-                    // Read the properties file to get variables
-                    def props = readProperties file: "$WORKSPACE/env_vars.tmp"
-                    echo "Triggering with ENV_MAIN: ${props['ENV_MAIN']}, APP: ${props['APP']}"
-                    
-                    // Trigger the downstream job with parameters
-                    build job: 'main-deployment', parameters: [
-                    string(name: 'ENV_MAIN', value: "${props['ENV_MAIN']}"),
-                    string(name: 'APP', value: "${props['APP']}")
-                    ], wait: false
-                }
+    steps {
+        script {
+            // Read the properties file to get variables
+            def props = readProperties file: "${env.WORKSPACE}/env_vars.tmp"
+            
+            // Log the properties to verify their content
+            echo "Read from properties file: ENV_MAIN=${props['ENV_MAIN']}, APP=${props['APP']}"
+
+            // Ensure that the properties are not null or empty
+            if (!props['ENV_MAIN'] || !props['APP']) {
+                echo "ENV_MAIN or APP is missing or empty in properties file."
+                error("Stopping the build due to missing parameter values.")
             }
+
+            // Trigger the downstream job with parameters
+            build job: 'main-deployment', parameters: [
+                string(name: 'ENV_MAIN', value: props['ENV_MAIN'].trim()),
+                string(name: 'APP', value: props['APP'].trim())
+            ], wait: false
         }
     }
+}
     post {
         always {
             // Cleanup the workspace, which includes the temporary file
