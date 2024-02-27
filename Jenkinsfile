@@ -49,7 +49,8 @@ pipeline {
                 script {
                     // Read the properties file to get variables
                     def props = readProperties file: "$WORKSPACE/env_vars.tmp"
-
+                    echo "Triggering with ENV_MAIN: ${props['ENV_MAIN']}, APP: ${props['APP']}"
+                    
                     // Trigger the downstream job with parameters
                     build job: 'main-deployment', parameters: [
                         string(name: 'ENV_MAIN', value: props['ENV_MAIN']),
