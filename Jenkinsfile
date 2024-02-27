@@ -32,7 +32,7 @@ pipeline {
             }
         }
         
-        stage('Echo Variables in Docker Container') {
+        /*stage('Echo Variables in Docker Container') {
             steps {
                 container('docker-in-docker') {
                     // Read and source the temporary file to set environment variables in the Docker container
@@ -42,7 +42,7 @@ pipeline {
                     '''
                 }
             }
-        }
+        }*/
 
         stage('Trigger Downstream Job') {
             steps {
