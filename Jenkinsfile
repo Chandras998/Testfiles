@@ -30,23 +30,25 @@ pipeline {
         }
 
         stage('Trigger Downstream Job') {
-    steps {
-        script {
-            def props = readProperties file: "${env.WORKSPACE}/env_vars.tmp"
-            echo "Read from properties file: ENV_MAIN=${props['ENV_MAIN']}, APP=${props['APP']}"
+            steps {
+                script {
+                    def props = readProperties file: "${env.WORKSPACE}/env_vars.tmp"
+                    echo "Read from properties file: ENV_MAIN=${props['ENV_MAIN']}, APP=${props['APP']}"
 
-            if (!props['ENV_MAIN'] || !props['APP']) {
-                echo "ENV_MAIN or APP is missing or empty in properties file."
-                error("Stopping the build due to missing parameter values.")
+                    if (!props['ENV_MAIN'] || !props['APP']) {
+                        echo "ENV_MAIN or APP is missing or empty in properties file."
+                        error("Stopping the build due to missing parameter values.")
+                    }
+
+                    // Note: Changed from hard-coded strings to actual values from properties file
+                    build job: 'main-deployment', parameters: [
+                        string(name: 'ENV_MAIN', value: props['ENV_MAIN'].trim()), 
+                        string(name: 'APP', value: props['APP'].trim())
+                    ], wait: false
+                }
             }
-
-            build job: 'main-deployment', parameters: [
-                string(name: 'ENV_MAIN', value: 'ENV_MAIN'), // For debugging
-                string(name: 'APP', value: 'APP') // For debugging
-            ], wait: false
         }
     }
-}
     post {
         always {
             cleanWs()
