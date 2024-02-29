@@ -51,6 +51,30 @@ pipeline {
                 }
             }
         }
+        stage('Second Downstream Job') {
+            steps {
+                script {
+                    sh "ls -lart"
+                    sh "cat ${env.WORKSPACE}/env_vars.tmp"
+                    def props = readProperties file: "${env.WORKSPACE}/env_vars.tmp"
+                    
+                    echo "Read from properties file: ENV_MAIN=${props['ENV_MAIN']}, APP=${props['APP']}"
+
+                    if (!props['ENV_MAIN'] || !props['APP']) {
+                        echo "ENV_MAIN or APP is missing or empty in properties file."
+                        error("Stopping the build due to missing parameter values.")
+                    }
+
+                    // Debugging output before triggering the job
+                    echo "Triggering with ENV_MAIN: '${props['ENV_MAIN']}', APP: '${props['APP']}'"
+
+                    build job: 'second-deployment', parameters: [
+                        string(name: 'ENV_MAIN', value: props['ENV_MAIN'].toString().trim()),
+                        string(name: 'APP', value: props['APP'].toString().trim())
+                    ], wait: false
+                }
+            }
+        }
     }
     post {
         always {
