@@ -28,6 +28,9 @@ pipeline {
             }
         }
         stage('Intentional Failure') {
+            when {
+                expression { !params.CHECK } // Only fail if CHECK is not true
+            }
             steps {
                 script {
                     error("Intentionally failing the build to test downstream job conditions.")
