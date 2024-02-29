@@ -26,6 +26,13 @@ pipeline {
                 }
             }
         }
+        stage('Intentional Failure') {
+            steps {
+                script {
+                    error("Intentionally failing the build to test downstream job conditions.")
+                }
+            }
+        }
 
         stage('Trigger Downstream Job') {
             steps {
