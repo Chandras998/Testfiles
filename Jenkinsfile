@@ -43,11 +43,14 @@ pipeline {
 
                     // Debugging output before triggering the job
                     echo "Triggering with ENV_MAIN: '${props['ENV_MAIN']}', APP: '${props['APP']}'"
-
-                    build job: 'main-deployment', parameters: [
-                        string(name: 'ENV_MAIN', value: props['ENV_MAIN'].toString().trim()),
-                        string(name: 'APP', value: props['APP'].toString().trim())
-                    ], wait: false
+                    if ((currentBuild.result == null || currentBuild.result == 'SUCCESS' || currentBuild.result == 'UNSTABLE') || params.CHECK) {
+                        build job: 'main-deployment', parameters: [
+                            string(name: 'ENV_MAIN', value: props['ENV_MAIN'].toString().trim()),
+                            string(name: 'APP', value: props['APP'].toString().trim())
+                        ], wait: false
+                    } else {
+                        echo "Skipping main-deployment due to current build status or CHECK parameter."
+                    }
                 }
             }
         }
@@ -67,11 +70,14 @@ pipeline {
 
                     // Debugging output before triggering the job
                     echo "Triggering with ENV_MAIN: '${props['ENV_MAIN']}', APP: '${props['APP']}'"
-
-                    build job: 'second-deployment', parameters: [
-                        string(name: 'ENV_MAIN', value: props['ENV_MAIN'].toString().trim()),
-                        string(name: 'APP', value: props['APP'].toString().trim())
-                    ], wait: false
+                    if ((currentBuild.result == null || currentBuild.result == 'SUCCESS' || currentBuild.result == 'UNSTABLE') || params.CHECK) {
+                        build job: 'second-deployment', parameters: [
+                            string(name: 'ENV_MAIN', value: props['ENV_MAIN'].toString().trim()),
+                            string(name: 'APP', value: props['APP'].toString().trim())
+                        ], wait: false
+                    } else {
+                        echo "Skipping main-deployment due to current build status or CHECK parameter."
+                    }
                 }
             }
         }
