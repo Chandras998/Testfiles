@@ -4,98 +4,64 @@ pipeline {
         choice(name: 'ENV', choices: ['DEV', 'QA', 'TEST', 'PROD'], description: 'Select the environment.')
         booleanParam(name: 'CHECK', defaultValue: false, description: '')
     }
-    stages {
-        stage('Set Env Variables and Write to File') {
-            steps {
-                script {
-                    def ENV_MAIN = ''
-                    def APP = ''
-                    
-                    if (params.ENV == 'DEV') {
-                        ENV_MAIN = 'NONPROD'
-                    } else if (params.ENV == 'QA') {
-                        ENV_MAIN = 'NONPROD'
-                    } else if (params.ENV == 'TEST') {
-                        ENV_MAIN = 'NONPROD'
-                    } else if (params.ENV == 'PROD') {
-                        ENV_MAIN = 'PROD'
-                    }
-                    
-                    APP = 'CSK8S' // Assuming APP is 'CSK8S' for simplification
-
-                    writeFile file: "${env.WORKSPACE}/env_vars.tmp", text: "ENV_MAIN=${ENV_MAIN}\nAPP=${APP}"
-                }
-            }
-        }
-        stage('Intentional Failure') {
-            when {
-                expression { !params.CHECK } // Only fail if CHECK is not true
-            }
-            steps {
-                script {
-                    error("Intentionally failing the build to test downstream job conditions.")
-                }
-            }
-        }
-
-        stage('Trigger Downstream Job') {
-            steps {
-                script {
-                    sh "ls -lart"
-                    sh "cat ${env.WORKSPACE}/env_vars.tmp"
-                    def props = readProperties file: "${env.WORKSPACE}/env_vars.tmp"
-                    
-                    echo "Read from properties file: ENV_MAIN=${props['ENV_MAIN']}, APP=${props['APP']}"
-
-                    if (!props['ENV_MAIN'] || !props['APP']) {
-                        echo "ENV_MAIN or APP is missing or empty in properties file."
-                        error("Stopping the build due to missing parameter values.")
-                    }
-
-                    // Debugging output before triggering the job
-                    echo "Triggering with ENV_MAIN: '${props['ENV_MAIN']}', APP: '${props['APP']}'"
-                    if ((currentBuild.result == null || currentBuild.result == 'SUCCESS' || currentBuild.result == 'UNSTABLE') || params.CHECK) {
-                        build job: 'main-deployment', parameters: [
-                            string(name: 'ENV_MAIN', value: props['ENV_MAIN'].toString().trim()),
-                            string(name: 'APP', value: props['APP'].toString().trim())
-                        ], wait: false
-                    } else {
-                        echo "Skipping main-deployment due to current build status or CHECK parameter."
-                    }
-                }
-            }
-        }
-        stage('Second Downstream Job') {
-            steps {
-                script {
-                    sh "ls -lart"
-                    sh "cat ${env.WORKSPACE}/env_vars.tmp"
-                    def props = readProperties file: "${env.WORKSPACE}/env_vars.tmp"
-                    
-                    echo "Read from properties file: ENV_MAIN=${props['ENV_MAIN']}, APP=${props['APP']}"
-
-                    if (!props['ENV_MAIN'] || !props['APP']) {
-                        echo "ENV_MAIN or APP is missing or empty in properties file."
-                        error("Stopping the build due to missing parameter values.")
-                    }
-
-                    // Debugging output before triggering the job
-                    echo "Triggering with ENV_MAIN: '${props['ENV_MAIN']}', APP: '${props['APP']}'"
-                    if ((currentBuild.result == null || currentBuild.result == 'SUCCESS' || currentBuild.result == 'UNSTABLE') || params.CHECK) {
-                        build job: 'second-deployment', parameters: [
-                            string(name: 'ENV_MAIN', value: props['ENV_MAIN'].toString().trim()),
-                            string(name: 'APP', value: props['APP'].toString().trim())
-                        ], wait: false
-                    } else {
-                        echo "Skipping main-deployment due to current build status or CHECK parameter."
-                    }
-                }
-            }
-        }
+    environment {
+        myremoteuser = "adminuser"
+        myremote_host = "server1.com"
+        mongohostname = "servermongo.com"
+        mongousername = "nodeuser"
+        mongopassword = "welcome123"
+        MY_DIR = "/tmp/css"
+        ssh_options = "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=3 -o TCPKeepAlive=yes"
     }
-    post {
-        always {
-            cleanWs()
+    stages {
+        stage('Checkout repository') {
+            steps {
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: "*/${BRANCH}"]],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [],
+                    userRemoteConfigs: [[
+                        credentialsId: 'mygithub',
+                        url: 'git@github.com:chands/docker-images.git'
+                    ]]
+                ])
+            }
+        }
+        stage('Buildstage') {
+            steps {
+                container('kubectl') {
+                    sh '''
+                        #!/bin/bash
+                        set -xe
+                        
+                        DATE=$(date +%Y%m%d)
+
+                        if [ ! -z "$ENDDATE" ] && [[ $ENDDATE =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+                            ENDDATE_NEW=$ENDDATE
+                        elif [ ! -z "$ENDDATE" ]; then
+                            echo "wrong date format"
+                            exit 1
+                        else 
+                            ENDDATE_NEW=$(date -d @$(( $(date +%s) - 86400 )) +%Y-%m-%d)
+                        fi
+
+                        if [ ! -z "$STARTDATE" ] && [[ $STARTDATE =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+                            STARTDATE_NEW=$STARTDATE
+                        elif [ ! -z "$STARTDATE" ]; then
+                            echo "wrong date format"
+                            exit 1
+                        else 
+                            STARTDATE_NEW=$(date -d @$(( $(date +%s) - 86400 * 30 )) +%Y-%m-%d)
+                        fi
+
+                        echo "Enddate is: $ENDDATE_NEW"
+                        echo "Startdate is: $STARTDATE_NEW"
+
+                        ssh -t $ssh_options $myremoteuser@$myremote_host "mongoexport --host=$mongohostname --username=$mongousername --password=$mongopassword --authenticationDatabase=msql_auth --db my-cp-db --collection req_log -q='{\"requestDateTime\": {\"\$gte\": {\"\$date\": \"${STARTDATE_NEW}T00:00:00.00Z\"}, \"\$lte\": {\"\$date\": \"${ENDDATE_NEW}T00:00:00.00Z\"}}}' --type=csv --fields _id,reqDatetime,Identifier,SSsystem,_class -out=$MY_DIR/mydelgreport_${DATE}.csv"
+                    '''
+                }
+            }
         }
     }
 }
