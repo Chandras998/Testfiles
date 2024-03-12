@@ -14,20 +14,7 @@ pipeline {
         ssh_options = "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=3 -o TCPKeepAlive=yes"
     }
     stages {
-        stage('Checkout repository') {
-            steps {
-                checkout([
-                    $class: 'GitSCM',
-                    branches: [[name: "*/${BRANCH}"]],
-                    doGenerateSubmoduleConfigurations: false,
-                    extensions: [],
-                    userRemoteConfigs: [[
-                        credentialsId: 'mygithub',
-                        url: 'git@github.com:chands/docker-images.git'
-                    ]]
-                ])
-            }
-        }
+        
         stage('Buildstage') {
             steps {
                 container('kubectl') {
