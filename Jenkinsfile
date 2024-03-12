@@ -14,34 +14,34 @@ pipeline {
         stage('Buildstage') {
             steps {
                 sh '''
-                #!/bin/bash
-                set -xe
+                    #!/bin/bash
+                    set -xe
+                    
+                    DATE=$(date +%Y%m%d)
                 
-                DATE=$(date +%Y%m%d)
-            
-                if [ ! -z "$ENDDATE" ] && [[ $ENDDATE =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
-                    ENDDATE_NEW=$ENDDATE
-                elif [ ! -z "$ENDDATE" ]; then
-                    echo "wrong date format"
-                    exit 1
-                else 
-                    ENDDATE_NEW=$(date -d @$(( $(date +%s) - 86400 )) +%Y-%m-%d)
-                fi
-            
-                if [ ! -z "$STARTDATE" ] && [[ $STARTDATE =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
-                    STARTDATE_NEW=$STARTDATE
-                elif [ ! -z "$STARTDATE" ]; then
-                    echo "wrong date format"
-                    exit 1
-                else 
-                    STARTDATE_NEW=$(date -d @$(( $(date +%s) - 86400 * 30 )) +%Y-%m-%d)
-                fi
-            
-                echo "Enddate is: $ENDDATE_NEW"
-                echo "Startdate is: $STARTDATE_NEW"
-            
-                echo "ssh $ssh_options $myremoteuser@$myremote_host \\"mongoexport --host=$mongohostname --username=$mongousername --password=$mongopassword --authenticationDatabase=msql_auth --db my-cp-db --collection req_log -q='{\\"requestDateTime\\": {\\"\\\$gte\\": {\\"\\\$date\\": \\"${STARTDATE_NEW}T00:00:00.00Z\\"}, \\"\\\$lte\\": {\\"\\\$date\\": \\"${ENDDATE_NEW}T00:00:00.00Z\\"}}}' --type=csv --fields _id,reqDatetime,Identifier,SSsystem,_class -out=$MY_DIR/mydelgreport_${DATE}.csv\\""
-            '''
+                    if [ ! -z "$ENDDATE" ] && [[ $ENDDATE =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+                        ENDDATE_NEW=$ENDDATE
+                    elif [ ! -z "$ENDDATE" ]; then
+                        echo "wrong date format"
+                        exit 1
+                    else 
+                        ENDDATE_NEW=$(date -d @$(( $(date +%s) - 86400 )) +%Y-%m-%d)
+                    fi
+                
+                    if [ ! -z "$STARTDATE" ] && [[ $STARTDATE =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+                        STARTDATE_NEW=$STARTDATE
+                    elif [ ! -z "$STARTDATE" ]; then
+                        echo "wrong date format"
+                        exit 1
+                    else 
+                        STARTDATE_NEW=$(date -d @$(( $(date +%s) - 86400 * 30 )) +%Y-%m-%d)
+                    fi
+                
+                    echo "Enddate is: $ENDDATE_NEW"
+                    echo "Startdate is: $STARTDATE_NEW"
+                    
+                    ssh $ssh_options $myremoteuser@$myremote_host "mongoexport --host=$mongohostname --username=$mongousername --password=$mongopassword --authenticationDatabase=msql_auth --db my-cp-db --collection req_log -q='{\"requestDateTime\": {\"\$gte\": {\"\$date\": \"${STARTDATE_NEW}T00:00:00.00Z\"}, \"\$lte\": {\"\$date\": \"${ENDDATE_NEW}T00:00:00.00Z\"}}}' --type=csv --fields _id,reqDatetime,Identifier,SSsystem,_class -out=$MY_DIR/mydelgreport_${DATE}.csv"
+                '''
             }
         }
     }
