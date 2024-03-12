@@ -1,9 +1,6 @@
 pipeline {
     agent any
-    parameters {
-        choice(name: 'ENV', choices: ['DEV', 'QA', 'TEST', 'PROD'], description: 'Select the environment.')
-        booleanParam(name: 'CHECK', defaultValue: false, description: '')
-    }
+    
     environment {
         myremoteuser = "adminuser"
         myremote_host = "server1.com"
