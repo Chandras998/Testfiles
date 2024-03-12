@@ -18,23 +18,15 @@ pipeline {
                     set -xe
                     
                     DATE=$(date +%Y%m%d)
-                
-                    if [ ! -z "$ENDDATE" ]; then
-                        ENDDATE_NEW=$ENDDATE
-                    else 
-                        ENDDATE_NEW=$(date -d @$(( $(date +%s) - 86400 )) +%Y-%m-%d)
-                    fi
-                
-                    if [ ! -z "$STARTDATE" ]; then
-                        STARTDATE_NEW=$STARTDATE
-                    else 
-                        STARTDATE_NEW=$(date -d @$(( $(date +%s) - 86400 * 30 )) +%Y-%m-%d)
-                    fi
-                
+                    ENDDATE_NEW=$(date -d @$(( $(date +%s) - 86400 )) +%Y-%m-%d)
+                    STARTDATE_NEW=$(date -d @$(( $(date +%s) - 86400 * 30 )) +%Y-%m-%d)
+                    
                     echo "Enddate is: $ENDDATE_NEW"
                     echo "Startdate is: $STARTDATE_NEW"
-                
-                    ssh $ssh_options $myremoteuser@$myremote_host "mongoexport --host=$mongohostname --username=$mongousername --password=$mongopassword --authenticationDatabase=msql_auth --db my-cp-db --collection req_log -q '{\\\"requestDateTime\\\": {\\\"\$gte\\\": {\\\"\\\$date\\\": \\\"${STARTDATE_NEW}T00:00:00.00Z\\\"}, \\\"\$lte\\\": {\\\"\\\$date\\\": \\\"${ENDDATE_NEW}T00:00:00.00Z\\\"}}}' --type=csv --fields _id,reqDatetime,Identifier,SSsystem,_class -out=$MY_DIR/mydelgreport_${DATE}.csv"
+                    
+                    QUERY="{\\\"requestDateTime\\\": {\\\"\$gte\\\": {\\\"\\\$date\\\": \\\"${STARTDATE_NEW}T00:00:00.00Z\\\"}, \\\"\$lte\\\": {\\\"\\\$date\\\": \\\"${ENDDATE_NEW}T00:00:00.00Z\\\"}}}"
+                    
+                    ssh $ssh_options $myremoteuser@$myremote_host "mongoexport --host=$mongohostname --username=$mongousername --password=$mongopassword --authenticationDatabase=msql_auth --db my-cp-db --collection req_log -q '\$QUERY' --type=csv --fields _id,reqDatetime,Identifier,SSsystem,_class -out=$MY_DIR/mydelgreport_${DATE}.csv"
                 '''
             }
         }
